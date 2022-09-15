@@ -1,20 +1,20 @@
 # action.yml
-name: cosign-installer
-author: sigstore
-description: 'Installs cosign and includes it in your path'
+name: vsign-action
+author: zosocanuck
+description: 'Installs vsign and includes it in your path'
 branding:
   icon: 'package'
   color: 'blue'
 # This is pinned to the last major release, we have to bump it for each action version.
 inputs:
-  cosign-release:
-    description: 'cosign release version to be installed'
+  vsign-release:
+    description: 'vsign release version to be installed'
     required: false
-    default: 'v1.11.1'
+    default: 'v0.1.0'
   install-dir:
-    description: 'Where to install the cosign binary'
+    description: 'Where to install the vsign binary'
     required: false
-    default: '$HOME/.cosign'
+    default: '$HOME/.vsign'
   use-sudo:
     description: 'set to true if install-dir location requires sudo privs'
     required: false
@@ -26,7 +26,7 @@ runs:
     - shell: bash
       run: |
         #!/bin/bash
-        # cosign install script
+        # vsign install script
         shopt -s expand_aliases
         if [ -z "$NO_COLOR" ]; then
           alias log_info="echo -e \"\033[1;32mINFO\033[0m:\""
@@ -38,14 +38,6 @@ runs:
         set -e
 
         mkdir -p ${{ inputs.install-dir }}
-
-        if [[ ${{ inputs.cosign-release }} == "main" ]]; then
-          log_info "installing cosign via 'go install' from its main version"
-          GOBIN=$(go env GOPATH)/bin
-          go install github.com/sigstore/cosign/cmd/cosign@main
-          ln -s $GOBIN/cosign ${{ inputs.install-dir}}/cosign
-          exit 0
-        fi
 
         shaprog() {
           case ${{ runner.os }} in
@@ -65,14 +57,11 @@ runs:
           esac
         }
 
-        bootstrap_version='v1.11.1'
-        bootstrap_linux_amd64_sha='4d9e4a8e79b714039b272ef89ae29bc45b32e585b6010a5b9048da14d93cfd5f'
-        bootstrap_linux_arm_sha='8568c6bcafe0dc230c75654ac2b5d4379a72738df1377b95cd0d48e3f1d7bc1d'
-        bootstrap_linux_arm64_sha='9fb8b494edb4b95caa9b822d2910460e40b16bc90b9477a2af2bcfba0bb9982f'
-        bootstrap_darwin_amd64_sha='a2b5aa3d82cf845c137d3da29aac33557767575967ec8683d673ef6c0116803d'
-        bootstrap_darwin_arm64_sha='d9ec1d1dd722a5cc62ece8ec0832ada0645f48d3d4b8858874d8cad96a15bf2a'
-        bootstrap_windows_amd64_sha='750e1b9e383d5d1f9782176a63121c4f310ad4cbd2262c8fde6fe4086090c164'
-        cosign_executable_name=cosign
+        bootstrap_version='v0.1.0'
+        bootstrap_linux_amd64_sha='ee775574d5fbebc23065dbac3c0f05027d1599d9f36ea77191d255d81d79ad8e'
+        bootstrap_darwin_amd64_sha='dbfd278f7a1525afa38d18fc2af3153463791dcf0c76fae29fed4bee2b8bfd2b'
+        bootstrap_windows_amd64_sha='bd0489797e79bf86b9f6ec6f727b1b75d39b9704472824cde26764cab48049b7'
+        vsign_executable_name=vsign
 
         trap "popd >/dev/null" EXIT
 
@@ -82,34 +71,9 @@ runs:
           Linux)
             case ${{ runner.arch }} in
               X64)
-                bootstrap_filename='cosign-linux-amd64'
+                bootstrap_filename='vsign-linux-amd64'
                 bootstrap_sha=${bootstrap_linux_amd64_sha}
-                desired_cosign_filename='cosign-linux-amd64'
-                # v0.6.0 had different filename structures from all other releases
-                if [[ ${{ inputs.cosign-release }} == 'v0.6.0' ]]; then
-                  desired_cosign_filename='cosign_linux_amd64'
-                  desired_cosign_v060_signature='cosign_linux_amd64_0.6.0_linux_amd64.sig'
-                fi
-                ;;
-
-              ARM)
-                bootstrap_filename='cosign-linux-arm'
-                bootstrap_sha=${bootstrap_linux_arm_sha}
-                desired_cosign_filename='cosign-linux-arm'
-                if [[ ${{ inputs.cosign-release }} == 'v0.6.0' ]]; then
-                  log_error "linux-arm build not available at v0.6.0"
-                  exit 1
-                fi
-                ;;
-
-              ARM64)
-                bootstrap_filename='cosign-linux-arm64'
-                bootstrap_sha=${bootstrap_linux_arm64_sha}
-                desired_cosign_filename='cosign-linux-amd64'
-                if [[ ${{ inputs.cosign-release }} == 'v0.6.0' ]]; then
-                  log_error "linux-arm64 build not available at v0.6.0"
-                  exit 1
-                fi
+                desired_vsign_filename='vsign-linux-amd64'
                 ;;
 
               *)
@@ -122,25 +86,9 @@ runs:
           macOS)
             case ${{ runner.arch }} in
               X64)
-                bootstrap_filename='cosign-darwin-amd64'
+                bootstrap_filename='vsign-darwin-amd64'
                 bootstrap_sha=${bootstrap_darwin_amd64_sha}
-                desired_cosign_filename='cosign-darwin-amd64'
-                # v0.6.0 had different filename structures from all other releases
-                if [[ ${{ inputs.cosign-release }} == 'v0.6.0' ]]; then
-                  desired_cosign_filename='cosign_darwin_amd64'
-                  desired_cosign_v060_signature='cosign_darwin_amd64_0.6.0_darwin_amd64.sig'
-                fi
-                ;;
-
-              ARM64)
-                bootstrap_filename='cosign-darwin-arm64'
-                bootstrap_sha=${bootstrap_darwin_arm64_sha}
-                desired_cosign_filename='cosign-darwin-arm64'
-                # v0.6.0 had different filename structures from all other releases
-                if [[ ${{ inputs.cosign-release }} == 'v0.6.0' ]]; then
-                  desired_cosign_filename='cosign_darwin_arm64'
-                  desired_cosign_v060_signature='cosign_darwin_arm64_0.6.0_darwin_arm64.sig'
-                fi
+                desired_vsign_filename='vsign-darwin-amd64'
                 ;;
 
               *)
@@ -153,15 +101,10 @@ runs:
           Windows)
             case ${{ runner.arch }} in
               X64)
-                bootstrap_filename='cosign-windows-amd64.exe'
+                bootstrap_filename='vsign-windows-amd64.exe'
                 bootstrap_sha=${bootstrap_windows_amd64_sha}
-                desired_cosign_filename='cosign-windows-amd64.exe'
-                cosign_executable_name=cosign.exe
-                # v0.6.0 had different filename structures from all other releases
-                if [[ ${{ inputs.cosign-release }} == 'v0.6.0' ]]; then
-                  desired_cosign_filename='cosign_windows_amd64.exe'
-                  desired_cosign_v060_signature='cosign_windows_amd64_0.6.0_windows_amd64.exe.sig'
-                fi
+                desired_vsign_filename='vsign-windows-amd64.exe'
+                vsign_executable_name=vsign.exe
                 ;;
               *)
                 log_error "unsupported architecture $arch"
@@ -181,72 +124,27 @@ runs:
         fi
 
         expected_bootstrap_version_digest=${bootstrap_sha}
-        log_info "Downloading bootstrap version '${bootstrap_version}' of cosign to verify version to be installed...\n      https://storage.googleapis.com/cosign-releases/${bootstrap_version}/${bootstrap_filename}"
-        $SUDO curl -sL https://storage.googleapis.com/cosign-releases/${bootstrap_version}/${bootstrap_filename} -o ${cosign_executable_name}
-        shaBootstrap=$(shaprog ${cosign_executable_name});
+        log_info "Downloading bootstrap version '${bootstrap_version}' of vsign to verify version to be installed...\n      https://storage.googleapis.com/vsign-releases/${bootstrap_version}/${bootstrap_filename}"
+        $SUDO curl -sL https://storage.googleapis.com/vsign-releases/${bootstrap_version}/${bootstrap_filename} -o ${vsign_executable_name}
+        shaBootstrap=$(shaprog ${vsign_executable_name});
         if [[ $shaBootstrap != ${expected_bootstrap_version_digest} ]]; then
-          log_error "Unable to validate cosign version: '${{ inputs.cosign-release }}'"
+          log_error "Unable to validate vsign version: '${{ inputs.vsign-release }}'"
           exit 1
         fi
-        $SUDO chmod +x ${cosign_executable_name}
+        $SUDO chmod +x ${vsign_executable_name}
 
-        # If the bootstrap and specified `cosign` releases are the same, we're done.
-        if [[ ${{ inputs.cosign-release }} == ${bootstrap_version} ]]; then
+        # If the bootstrap and specified `vsign` releases are the same, we're done.
+        if [[ ${{ inputs.vsign-release }} == ${bootstrap_version} ]]; then
           log_info "bootstrap version successfully verified and matches requested version so nothing else to do"
           exit 0
         fi
 
         semver='^v([0-9]+\.){0,2}(\*|[0-9]+)$'
-        if [[ ${{ inputs.cosign-release }} =~ $semver ]]; then
-          log_info "Custom cosign version '${{ inputs.cosign-release }}' requested"
+        if [[ ${{ inputs.vsign-release }} =~ $semver ]]; then
+          log_info "Custom vsign version '${{ inputs.vsign-release }}' requested"
         else
-          log_error "Unable to validate requested cosign version: '${{ inputs.cosign-release }}'"
+          log_error "Unable to validate requested vsign version: '${{ inputs.vsign-release }}'"
           exit 1
-        fi
-
-        # Download custom cosign
-        log_info "Downloading platform-specific version '${{ inputs.cosign-release }}' of cosign...\n      https://storage.googleapis.com/cosign-releases/${{ inputs.cosign-release }}/${desired_cosign_filename}"
-        $SUDO curl -sL https://storage.googleapis.com/cosign-releases/${{ inputs.cosign-release }}/${desired_cosign_filename} -o cosign_${{ inputs.cosign-release }}
-        shaCustom=$(shaprog cosign_${{ inputs.cosign-release }});
-
-        # same hash means it is the same release
-        if [[ $shaCustom != $shaBootstrap ]]; then
-          if [[ ${{ inputs.cosign-release }} == 'v0.6.0' && ${{ runner.os }} == 'Linux' ]]; then
-            # v0.6.0's linux release has a dependency on `libpcsclite1`
-            log_info "Installing libpcsclite1 package if necessary..."
-            set +e
-            sudo dpkg -s libpcsclite1
-            if [ $? -eq 0 ]; then
-                log_info "libpcsclite1 package is already installed"
-            else
-                 log_info "libpcsclite1 package is not installed, installing it now."
-                 sudo apt-get update -q -q
-                 sudo apt-get install -yq libpcsclite1
-            fi
-            set -e
-          fi
-
-          if [[ ${{ inputs.cosign-release }} == 'v0.6.0' ]]; then
-            log_info "Downloading detached signature for platform-specific '${{ inputs.cosign-release }}' of cosign...\n      https://github.com/sigstore/cosign/releases/download/${{ inputs.cosign-release }}/${desired_cosign_v060_signature}"
-            $SUDO curl -sL https://github.com/sigstore/cosign/releases/download/${{ inputs.cosign-release }}/${desired_cosign_v060_signature} -o ${desired_cosign_filename}.sig
-          else
-            log_info "Downloading detached signature for platform-specific '${{ inputs.cosign-release }}' of cosign...\n      https://github.com/sigstore/cosign/releases/download/${{ inputs.cosign-release }}/${desired_cosign_filename}.sig"
-            $SUDO curl -sLO https://github.com/sigstore/cosign/releases/download/${{ inputs.cosign-release }}/${desired_cosign_filename}.sig
-          fi
-
-          if [[ ${{ inputs.cosign-release }} < 'v0.6.0' ]]; then
-            RELEASE_COSIGN_PUB_KEY=https://raw.githubusercontent.com/sigstore/cosign/${{ inputs.cosign-release }}/.github/workflows/cosign.pub
-          else
-            RELEASE_COSIGN_PUB_KEY=https://raw.githubusercontent.com/sigstore/cosign/${{ inputs.cosign-release }}/release/release-cosign.pub
-          fi
-
-          log_info "Using bootstrap cosign to verify signature of desired cosign version"
-          ./cosign verify-blob --key $RELEASE_COSIGN_PUB_KEY --signature ${desired_cosign_filename}.sig cosign_${{ inputs.cosign-release }}
-
-          $SUDO rm cosign
-          $SUDO mv cosign_${{ inputs.cosign-release }} ${cosign_executable_name}
-          $SUDO chmod +x ${cosign_executable_name}
-          log_info "Installation complete!"
         fi
     - if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
       run:  echo "${{ inputs.install-dir }}" >> $GITHUB_PATH
