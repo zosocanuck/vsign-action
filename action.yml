@@ -58,9 +58,9 @@ runs:
         }
 
         bootstrap_version='v0.1.0'
-        bootstrap_linux_amd64_sha='ee775574d5fbebc23065dbac3c0f05027d1599d9f36ea77191d255d81d79ad8e'
-        bootstrap_darwin_amd64_sha='dbfd278f7a1525afa38d18fc2af3153463791dcf0c76fae29fed4bee2b8bfd2b'
-        bootstrap_windows_amd64_sha='bd0489797e79bf86b9f6ec6f727b1b75d39b9704472824cde26764cab48049b7'
+        bootstrap_linux_amd64_sha='042d58bf84182fd3f442c00cc96dd8808f0399f53feab8c8f638d1f640e53bf8'
+        bootstrap_darwin_amd64_sha='59f012b1dea434f0eb9afb5b01039b86e430ab2b0793b997f178d4d11be73245'
+        bootstrap_windows_amd64_sha='408e067e17aeb7a1300ceeaa00f658d0bdc1633314eebe343d2aae26e56e64ff'
         vsign_executable_name=vsign
 
         trap "popd >/dev/null" EXIT
